@@ -1,47 +1,352 @@
-# [Web Application Development]: Task Management Tool
-## Purpose
+# Realtime Task Management Web App
 
-1. Reactive front-end design
+A **Trello-inspired Kanban board** built with Flask and WebSockets. Multiple users can collaborate on shared project boards in real time — creating, editing, moving, and deleting cards without refreshing the page, with a live chat system per board.
 
-2. Design of a data-driven backend
+---
 
-3. Session management
+## Table of Contents
 
-4. Asynchronous communication 
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [System Architecture](#system-architecture)
+- [Database Schema (ERD)](#database-schema-erd)
+- [WebSocket Event Flow](#websocket-event-flow)
+- [Project Structure](#project-structure)
+- [Setup & Running](#setup--running)
+- [Route Reference](#route-reference)
+- [Security](#security)
+- [Deploy to Google Cloud](#deploy-to-google-cloud)
 
-5. Web APIs
+---
 
-   
+## Features
 
-## Goals
+| Feature | Description |
+|---|---|
+| Auth | Signup / Login / Logout with encrypted passwords |
+| Boards | Create shared project boards, invite members by email |
+| Kanban Lists | Three default columns per board: To Do / Doing / Completed |
+| Cards | Add, edit, delete cards with task descriptions |
+| Drag & Drop | Move cards between lists with drag and drop |
+| Card Locking | Card is locked while one user edits it — prevents simultaneous edits |
+| Real-time Sync | All board changes broadcast instantly to every connected user via WebSocket |
+| Live Chat | Per-board group chat for active members |
+| Persistent Storage | Full board state stored in MySQL, restored on every visit |
+| Docker | One-command local setup via Docker Compose |
+| Cloud Deploy | Deploy-ready for Google Cloud Run |
 
-The goal of this project is to develop a simplified version of the popular project management tool - [Trello]( https://trello.com/tour ).  Trello is a [Kanban](https://asana.com/resources/what-is-kanban) style application where progress of various project tasks can be easily understood by looking at a visual representation. For example, a project is visualized by a **Board**, different stages of the project are visualized by **Lists**, and **Cards** can be used within a List to represent various tasks. As the project progresses, Cards move from one List to another. For example, a Card for a task that has been completed can be moved from a *'Currently Doing'* List to *'Completed'* List by a team member. Your implementation will be a trimmed down version of a Kanban-style, list-making tool described in the specific requirements below. Before starting the exam, I strongly encourage you to make a free Trello account, and familiarize yourself with the basic functionality of the tool - it will make the specific requirements below a lot easier to follow.
+---
 
+## Tech Stack
 
+| Layer | Technology |
+|---|---|
+| Backend | Python 3, Flask |
+| Real-time | Flask-SocketIO + Eventlet |
+| Database | MySQL 8 |
+| Frontend | Vanilla JS, HTML/CSS (Jinja2 templates) |
+| Auth | scrypt (password hashing), Fernet (session encryption) |
+| Containerization | Docker, Docker Compose |
+| Cloud | Google Cloud Run |
 
-## Specific Requirements
+---
 
- Your implementation must adhere to the following requirements:   
+## System Architecture
 
-1.  **A Signup System:** You will develop pages that allow your users to first signup with an email and password and then use the same credentials to login. Only logged in users should be allowed to access the application interface. Users must have an ability to logout as well. Make sure that all stored passwords are encrypted in your database.
-2.  **The Interface**: 
-    1.  **Sign-in properties:**  upon first sign in, users should be presented with a message to either: (i) open an existing Board, or (ii) create a new Board. If they choose to open an existing Board, you must provide a list of all boards they are a part of, along with a link to access that board. If they choose to create a new Board, you must prompt them for (i) a *project name* and (ii) *a list of member emails* -   the set of other users that are allowed to join the project. 
-    2.  **Board Properties:** Each Board is a web page that shows the *project name*, and three default Lists: (1) "To Do"  (2) "Doing" (3) and "Completed". Ensure that only board members can access and view the Board, even if other users are logged in.
-    3.  **List Properties**: Each List should display (i) the list's name, and (ii) a set of Cards that below to that list. When the project board is first created there should be no cards on any of the lists. Each list should have a button that allows members of the Board to add new Cards to that list.
-    4.  **Card Properties**: Each Card must include a *text entry box* and two buttons: **Edit** and **Delete**. The *text entry box* allows users to describe the details of the Card's task. Users can only edit the content of the *text entry box* after clicking the **Edit** button. While editing, the **Edit** button should be replaced with a **Save** button. While one user is editing a Card, it's position (i.e. the list it's on) and it's content should be locked to prevent other users from making edits to it simultaneously. Once editing is complete, users can save their changes by either (i) pressing the Enter key or (ii) clicking the **Save** button. The **Save** button should then revert back to the **Edit** button. The **Delete** button should permanently remove the Card.
-    5.  **Card Movement:** Users should be able to move Cards across the three default lists in a Board by clicking and dragging the cards from one list, to another.
-    6.  **Live Changes:** When new Cards are created, existing Lists are edited, or Cards are updated by any user, all other logged-in users should see these changes in real-time without needing to take any explicit action; for example, they should not have to refresh their browser, reload the page, or pressing a refresh button to see the updated content. 
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Browser (Client)                        │
+│                                                                 │
+│   ┌──────────────┐   ┌──────────────┐   ┌──────────────────┐   │
+│   │   login.html │   │   home.html  │   │    board.html    │   │
+│   │   login.js   │   │   main.js    │   │  card.js chat.js │   │
+│   └──────┬───────┘   └──────┬───────┘   └────────┬─────────┘   │
+│          │  HTTP POST        │  HTTP GET           │ WebSocket   │
+└──────────┼───────────────────┼─────────────────────┼────────────┘
+           │                   │                     │
+           ▼                   ▼                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     Flask Application                           │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                       routes.py                         │   │
+│  │                                                         │   │
+│  │  HTTP Routes              SocketIO Events (/board ns)   │   │
+│  │  ─────────────────        ──────────────────────────    │   │
+│  │  GET  /login              connected / joined / left     │   │
+│  │  POST /processlogin       new_card                      │   │
+│  │  POST /processsignup      move_card                     │   │
+│  │  GET  /logout             lock_card / unlock_card       │   │
+│  │  GET  /home               update_card_description       │   │
+│  │  POST /create_board       delete_card                   │   │
+│  │  GET  /board/<id>         send_message                  │   │
+│  └──────────────────────────────────────┬────────────────┘   │
+│                                         │                       │
+│  ┌──────────────────────────────────────▼────────────────┐    │
+│  │               database.py (MySQL Layer)                │    │
+│  │                                                        │    │
+│  │  createUser()   authenticate()   getUserBoards()       │    │
+│  │  createBoards() createCard()     query()               │    │
+│  │  onewayEncrypt() reversibleEncrypt()                   │    │
+│  └──────────────────────────────────────┬─────────────────┘   │
+└─────────────────────────────────────────┼───────────────────────┘
+                                          │
+                          ┌───────────────▼──────────────┐
+                          │         MySQL Database        │
+                          │                              │
+                          │  users  boards  board_members│
+                          │  lists  cards                │
+                          └──────────────────────────────┘
+```
 
-3.  **Board Storage**: You need to store the current state of each Board, (i.e. everything written inside it) in a persistent relational database. Once any user signs up and logins again, they should be presented with the projects they had created or are a part of. The Board page should always show the most up-to-date state. 
-4.  **Chat System**: On each Board page, there will be a window option where a group member can chat  with other group members that are currently active and logged into the same Board page. There will be two windows in the chat system: The first window will allow users to type in and submit their chat text, and the second window will display the text. 
+---
 
+## Database Schema (ERD)
 
+```mermaid
+erDiagram
+    users {
+        int     user_id     PK
+        varchar email
+        varchar password
+    }
 
-**Deploy your web application to Google Cloud**
+    boards {
+        int     board_id    PK
+        varchar name
+        int     creator_id  FK
+    }
 
-Deploy your Dockerized App to Google Cloud by running the commands below from the directory.
+    board_members {
+        int board_id  FK
+        int user_id   FK
+    }
+
+    lists {
+        int     list_id   PK
+        varchar name
+        int     board_id  FK
+    }
+
+    cards {
+        int     card_id     PK
+        int     list_id     FK
+        varchar name
+        text    description
+        boolean is_locked
+    }
+
+    users       ||--o{ boards        : "creates"
+    users       ||--o{ board_members : "belongs to"
+    boards      ||--o{ board_members : "has"
+    boards      ||--o{ lists         : "contains"
+    lists       ||--o{ cards         : "holds"
+```
+
+---
+
+## WebSocket Event Flow
+
+All real-time events use the `/board` namespace. Each board has its own room (`board_<id>`), so events are scoped only to users viewing the same board.
+
+```
+Client A                    Flask-SocketIO Server              Client B, C...
+────────                    ─────────────────────              ──────────────
+
+── joined {board_id} ──►   join_room("board_<id>")
+                           emit status to room ──────────────► "X has entered the room"
+
+── new_card {list_id} ──►  db.createCard()
+                           emit new_card to room ─────────────► card appears on board
+
+── lock_card {card_id} ──► emit lock_card to room ───────────► card greys out for others
+
+── update_card ────────►   db.query(UPDATE cards)
+                           emit card_updated to room ─────────► card text updates live
+
+── unlock_card ─────────►  emit unlock_card to room ─────────► card becomes editable again
+
+── move_card {list_id} ──► db.query(UPDATE cards)
+                           emit card_moved to room ──────────► card moves to new list
+
+── delete_card ─────────►  db.query(DELETE cards)
+                           emit card_deleted to room ─────────► card disappears
+
+── send_message {msg} ──►  emit message to room ─────────────► chat message appears
+```
+
+---
+
+## Project Structure
+
+```
+realtime-task_management-web/
+│
+├── app.py                          # Entry point — starts Flask + SocketIO server
+├── requirements.txt                # Python dependencies
+├── Dockerfile                      # Production image
+├── Dockerfile-dev                  # Development image (volume-mounted)
+├── docker-compose.yml              # Local dev setup
+│
+└── flask_app/
+    ├── __init__.py                 # App factory — creates Flask app, inits SocketIO
+    ├── routes.py                   # All HTTP routes + WebSocket event handlers
+    │
+    ├── utils/
+    │   └── database/
+    │       └── database.py         # All DB operations + encryption helpers
+    │
+    ├── database/
+    │   └── create_tables/
+    │       ├── users.sql           # users table schema
+    │       ├── boards.sql          # boards table schema
+    │       ├── board_members.sql   # board_members join table schema
+    │       ├── lists.sql           # lists table schema
+    │       └── cards.sql           # cards table schema (includes is_locked flag)
+    │
+    ├── templates/
+    │   ├── shared/
+    │   │   └── layout.html         # Base HTML layout (navbar, shared structure)
+    │   ├── login.html              # Signup / Login page
+    │   ├── home.html               # Dashboard — board list + create board
+    │   └── board.html              # Kanban board page with live updates
+    │
+    └── static/
+        ├── login/
+        │   ├── css/login.css
+        │   └── js/login.js         # Async signup/login via fetch
+        └── main/
+            ├── css/
+            │   ├── main.css
+            │   ├── board.css
+            │   ├── navbar.css
+            │   └── chat.css
+            └── js/
+                ├── main.js         # Board creation, home page logic
+                ├── card.js         # Card CRUD, drag & drop, lock/unlock
+                └── chat.js         # SocketIO chat connection & messaging
+```
+
+---
+
+## Setup & Running
+
+### Option 1 — Docker (recommended)
 
 ```bash
-gcloud builds submit --tag gcr.io/[gcloud project name]/task-management
-gcloud run deploy --image gcr.io/[gcloud project name]/task-management --platform managed
+# Clone and enter the project
+cd realtime-task_management-web
+
+# Start the app (Flask on port 8080)
+docker-compose up --build
 ```
+
+Open `http://localhost:8080`
+
+> MySQL is expected to be running separately (or add a `db` service to `docker-compose.yml`).  
+> Update the host/user/password in `flask_app/utils/database/database.py` to match your MySQL config.
+
+---
+
+### Option 2 — Local (without Docker)
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Make sure MySQL is running and a database named 'db' exists
+mysql -u root -p -e "CREATE DATABASE db;"
+
+# Run the app
+python app.py
+```
+
+Open `http://localhost:8080`
+
+---
+
+### MySQL Configuration
+
+Edit `flask_app/utils/database/database.py`:
+
+```python
+self.database = 'db'
+self.host     = '127.0.0.1'
+self.user     = 'master'
+self.port     = 3306
+self.password = 'master'
+```
+
+Tables are created automatically on first run (`db.createTables()`).
+
+---
+
+## Route Reference
+
+### HTTP Routes
+
+| Method | Route | Auth Required | Description |
+|---|---|---|---|
+| GET | `/` | No | Redirects to `/home` |
+| GET | `/login` | No | Login / Signup page |
+| POST | `/processlogin` | No | Authenticate user, set session |
+| POST | `/processsignup` | No | Register new user |
+| GET | `/logout` | Yes | Clear session, redirect to login |
+| GET | `/home` | Yes | Dashboard — list boards, create board form |
+| POST | `/create_board` | Yes | Create board + default lists + add members |
+| GET | `/board/<id>` | Yes | View a Kanban board |
+
+### WebSocket Events (`/board` namespace)
+
+| Event (client → server) | Payload | Description |
+|---|---|---|
+| `joined` | `{board_id}` | Join board room, announce presence |
+| `new_card` | `{board_id, list_id, card_name, description}` | Create card, broadcast to room |
+| `move_card` | `{card_id, list_id, board_id}` | Move card to new list, broadcast |
+| `lock_card` | `{card_id, board_id}` | Lock card for editing, broadcast |
+| `unlock_card` | `{card_id, board_id}` | Unlock card, broadcast |
+| `update_card_description` | `{card_id, description, board_id}` | Save card text, broadcast |
+| `delete_card` | `{card_id, board_id}` | Delete card from DB, broadcast |
+| `send_message` | `{board_id, msg}` | Send chat message to board room |
+| `left` | `{board_id}` | Leave board room, announce departure |
+
+| Event (server → client) | Triggered by | Description |
+|---|---|---|
+| `status` | joined / left | User joined or left the room |
+| `new_card` | new_card | New card appears on all clients |
+| `card_moved` | move_card | Card moves to new list for all clients |
+| `lock_card` | lock_card | Card greys out for all other clients |
+| `unlock_card` | unlock_card | Card becomes editable for all clients |
+| `card_updated` | update_card_description | Card text updates for all clients |
+| `card_deleted` | delete_card | Card disappears for all clients |
+| `message` | send_message | Chat message displayed in chat window |
+
+---
+
+## Security
+
+| Concern | Implementation |
+|---|---|
+| Password storage | `hashlib.scrypt` (one-way, salted) — passwords are never stored in plain text |
+| Session data | Email stored in session as Fernet-encrypted ciphertext (reversible encryption) |
+| Route protection | `@login_required` decorator — redirects unauthenticated requests to `/login` |
+| Concurrent editing | `is_locked` flag in DB + `lock_card` / `unlock_card` WebSocket events prevent simultaneous card edits |
+
+> **Note:** The Fernet key and scrypt salt are hardcoded for development. In production, move these to environment variables.
+
+---
+
+## Deploy to Google Cloud
+
+```bash
+# Build and push the container image
+gcloud builds submit --tag gcr.io/[YOUR_PROJECT_ID]/task-management
+
+# Deploy to Cloud Run
+gcloud run deploy \
+  --image gcr.io/[YOUR_PROJECT_ID]/task-management \
+  --platform managed \
+  --port 8080
+```
+
+Replace `[YOUR_PROJECT_ID]` with your GCP project ID.
