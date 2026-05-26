@@ -1,70 +1,184 @@
-/* main style of login page */
+/* ── Login Page ──────────────────────────────────── */
 #main-login {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    flex:1;
     align-items: center;
     justify-content: center;
-   }
+    padding: 32px 16px;
+    background: linear-gradient(160deg, #FFF7ED 0%, #F8FAFC 60%);
+}
+
 .login-box {
     display: flex;
     flex-direction: column;
-    margin-top: 15%;
-    width: 40vw;
-    height: 40vh;
+    width: 100%;
+    max-width: 400px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px 36px 32px;
+    box-shadow: 0 4px 6px rgba(0,0,0,.05), 0 16px 40px rgba(0,0,0,.08);
+    border: 1px solid #F1F5F9;
 }
 
-.login-text{
-    align-self: center;
-    font-size:200%;
-    font-weight: bold;
+.login-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.login-logo svg {
+    width: 36px;
+    height: 36px;
+    color: #F97316;
+}
+
+.login-logo-text {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1E293B;
+    letter-spacing: -0.5px;
+}
+
+.login-text {
+    text-align: center;
+    font-size: 14px;
+    color: #64748B;
+    margin: 0 0 28px;
+    font-weight: 400;
+}
+
+.login-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+    margin-top: 16px;
 }
 
 .login-input {
-    font-size:120%;
-    margin: 2%;
-    padding: 1%;
+    font-size: 15px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 11px 14px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    outline: none;
+    color: #1E293B;
+    transition: border-color .2s, box-shadow .2s;
+    width: 100%;
+    margin: 0;
 }
 
+.login-input:focus {
+    border-color: #F97316;
+    box-shadow: 0 0 0 3px rgba(249,115,22,.15);
+}
 
-#signup-btn, #login-btn{
-    align-self: center;
-    width: 60%;
-    font-size:140%;
-    border-radius: 0.5rem;
-    border-color: rgb(255, 255, 255);
-    margin-top: 10%;
-    color:rgb(255, 255, 255);
-    background-color: rgb(253, 190, 143);
-    padding: 1%;
+.login-input::placeholder {
+    color: #CBD5E1;
+}
+
+#login-btn {
+    width: 100%;
+    margin-top: 24px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: #fff;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+    letter-spacing: 0.2px;
+}
+
+#login-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+#login-btn:active {
+    transform: translateY(0);
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0 8px;
+    color: #CBD5E1;
+    font-size: 12px;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #E2E8F0;
+}
+
+#signup-btn {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    transition: border-color .2s, background .2s, color .2s;
+}
+
+#signup-btn:hover {
+    border-color: #F97316;
+    background: #FFF7ED;
+    color: #EA580C;
 }
 
 #feedback {
-    color:rgb(220, 53, 69);
-    font-size: 140%;
-}
-#signup-btn {
-    margin-top: 1%;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #DC2626;
+    text-align: center;
+    min-height: 20px;
+    font-weight: 500;
 }
 
+/* ── Popup toast ─────────────────────────────────── */
 .popup-message {
     position: fixed;
-    top: 20px;
+    top: 24px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 2%;
-    border-radius: 2rem;
-    font-size: 120%;
-    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
     z-index: 1000;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    animation: slideDown .3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 .popup-message.success {
-    background-color: rgb(40, 167, 69); /* Green for success */
+    background: linear-gradient(135deg, #22C55E, #16A34A);
 }
 
 .popup-message.error {
-    background-color: rgb(220, 53, 69); /* Red for error */
+    background: linear-gradient(135deg, #EF4444, #DC2626);
 }

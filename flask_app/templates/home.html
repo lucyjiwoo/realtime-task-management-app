@@ -1,32 +1,36 @@
 {% extends 'shared/layout.html' %}
 
-
-
 {% block maincontent %}
 <main id="main-home">
-    <!-- Form to add new block -->
+    <!-- Create Board Form -->
     <form class="create-block-section" action="/create_board" method="POST">
-            <label for="board_name">Board Name</label>
-            <input type="text" id="board_name" name="board_name" required placeholder="Name of your Project">
-            <label for="members">Members</label>
-            <input type="email" class="members" name="members" required placeholder="Email of member">
-            <button id="add-btn" type="button" onclick="addMember()">+</button>
-            <button id="create-board-btn"type="submit">Create Board</button>
+        <p class="form-title">New Board</p>
+
+        <label for="board_name">Board Name</label>
+        <input type="text" id="board_name" name="board_name" required placeholder="e.g. Product Roadmap">
+
+        <label for="members">Members</label>
+        <div class="members-row">
+            <input type="email" class="members" id="members" name="members" required placeholder="teammate@example.com">
+            <button id="add-btn" type="button" onclick="addMember()" title="Add another member">+</button>
+        </div>
+
+        <button id="create-board-btn" type="submit">Create Board</button>
     </form>
-    <!-- Blocks display -->
+
+    <!-- Boards Grid -->
+    <p class="boards-header">Your Boards</p>
     <div id="blocks-section">
         {% if boards %}
             {% for board in boards %}
             <div class="board-box">
                 <h3>{{ board.name }}</h3>
-                
-                <a href="/board/{{ board.board_id }}">View Board</a>
+                <a href="/board/{{ board.board_id }}">Open Board →</a>
             </div>
             {% endfor %}
         {% else %}
-            <p>No boards found. Create a new one above!</p>
+            <p class="no-boards">No boards yet — create one above!</p>
         {% endif %}
     </div>
 </main>
-
 {% endblock %}

@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="eng">
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Task Managing Application</title>
-        <link rel="stylesheet"    href="{{ url_for('static', filename='main/css/main.css') }}">
-        <link rel="stylesheet"    href="{{ url_for('static', filename='main/css/navbar.css') }}">
+        <title>TaskFlow — Kanban Board</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{{ url_for('static', filename='main/css/main.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='main/css/navbar.css') }}">
         {% block extracss %}{% endblock %}
         {% block extrajs %}
         <script src="{{ url_for('static', filename='main/js/main.js') }}" defer></script>
@@ -14,43 +17,49 @@
     </head>
 
     <body class="body-style">
-        <article class="container">
-            <!-- The header  -->
-            <header class="final-header">
-                <h1 class="header-text">Kanban style task manage application</h1>
-            </header>
+        <div class="container">
             <!-- The navigation bar -->
             <nav class="nav-bar">
+                <a class="nav-brand" href="/home">
+                    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="7" height="18" rx="1.5" fill="currentColor" opacity="0.9"/>
+                        <rect x="14" y="3" width="7" height="11" rx="1.5" fill="currentColor" opacity="0.7"/>
+                        <rect x="14" y="17" width="7" height="4" rx="1.5" fill="currentColor" opacity="0.5"/>
+                    </svg>
+                    TaskFlow
+                </a>
                 <!-- navigation bar in desktop display -->
                 <ul class="nav-lists">
-                    {% if user != 'Unknown' %}
-                        <li class="hello-user" no hover>Hello, {{user}}</li>
-                    {% endif %}
                     <li class="nav-list"><a class="nav-link" href="/home">Home</a></li>
                     {% if user != 'Unknown' %}
-                        <li class="nav-list"><a class="nav-link"href="/logout">Logout</a></li>
+                        <li class="nav-list"><span class="hello-user">{{ user }}</span></li>
+                        <li class="nav-list"><a class="nav-link nav-logout" href="/logout">Logout</a></li>
                     {% endif %}
                 </ul>
-                <!-- navigation bar in mobile display (Dropdown Menu with meenu icon)-->
+                <!-- navigation bar in mobile display -->
                 <div class="side-bar">
-                <input type="checkbox" id="menu-click" title="toggle menu bar">
-                        <label for="menu-click" class="menu-icon"></label>
-                <div class="dropdown">
-                    <a class="nav-link drowdown-link" href="/home">Home</a></li>
-                    {% if user != 'Unknown' %}
-                        <a class="nav-link drowdown-link" href="/logout">Logout</a>
-                    {% endif %}
-                </div>
+                    <input type="checkbox" id="menu-click" title="toggle menu bar">
+                    <label for="menu-click" class="menu-icon">
+                        <span></span><span></span><span></span>
+                    </label>
+                    <div class="dropdown">
+                        <a class="dropdown-link" href="/home">Home</a>
+                        {% if user != 'Unknown' %}
+                            <span class="dropdown-user">{{ user }}</span>
+                            <a class="dropdown-link" href="/logout">Logout</a>
+                        {% endif %}
+                    </div>
                 </div>
             </nav>
+
             <!-- The main content  -->
             {% block maincontent %}{% endblock %}
 
             <!-- The footer of the file -->
             <footer class="footer_final">
-                <p>@2024 Jiwoo Jeong</p>
+                <p>&copy; 2024 Jiwoo Jeong &nbsp;·&nbsp; TaskFlow</p>
             </footer>
 
-        </article>
+        </div>
     </body>
 </html>

@@ -2,34 +2,31 @@
 
 {% block extracss %}
 <link rel="stylesheet" href="{{ url_for('static', filename='main/css/board.css') }}">
-<link rel="stylesheet"    href="{{ url_for('static', filename='main/css/chat.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='main/css/chat.css') }}">
 {% endblock %}
 
 {% block extrajs %}
-<script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-<script src="https://cdn.socket.io/3.1.1/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='main/js/chat.js') }}" defer></script>
 <script src="{{ url_for('static', filename='main/js/card.js') }}" defer></script>
 {% endblock %}
+
 {% block maincontent %}
 <main id="main-board">
-    <!-- Iterate over lists -->
     {% for list in lists %}
     <div class="list-section" id="list-{{ list.list_id }}" data-list-id="{{ list.list_id }}">
-        <!-- List Header -->
         <div class="list-header">
             <p class="list-name">{{ list.name }}</p>
-            <!-- Form to create a new card -->
             <form class="create-card" action="/create_card?board_id={{ board.board_id }}" method="POST">
                 <input type="hidden" name="list_id" value="{{ list.list_id }}">
-                <label for="card_name_{{ list.list_id }}">Card Name</label>
-                <input type="text" id="card_name_{{ list.list_id }}" name="card_name" required placeholder="Card Name">
+                <label for="card_name_{{ list.list_id }}">Card name</label>
+                <input type="text" id="card_name_{{ list.list_id }}" name="card_name" required placeholder="What needs doing?">
                 <label for="description_{{ list.list_id }}">Description</label>
-                <input type="text" id="description_{{ list.list_id }}" name="description" placeholder="Optional description">
-                <button type="submit" class="add-card-btn">Add Card</button>
+                <input type="text" id="description_{{ list.list_id }}" name="description" placeholder="Optional details…">
+                <button type="submit" class="add-card-btn">+ Add Card</button>
             </form>
         </div>
-        <!-- Cards Container -->
         <div class="cards">
             {% if cards[list.list_id] %}
                 {% for card in cards[list.list_id] %}
@@ -47,15 +44,17 @@
     </div>
     {% endfor %}
 
-    <!-- Chat Section -->
-    <input type="checkbox" id="chat-click" title="popup chat window">
-    <label for="chat-click" class="chat-icon"></label>
+    <!-- Chat -->
+    <input type="checkbox" id="chat-click" title="Open team chat">
+    <label for="chat-click" class="chat-icon" title="Team Chat"></label>
     <div class="chat-window">
         <div id="chat"></div>
         <input type="hidden" id="board_id" value="{{ board.board_id }}">
         <input type="hidden" id="user" value="{{ user }}">
-        <input id="message-input" placeholder="Enter Your Message Here">
-        <button class="close-chat-btn">Leave Chat</button>
+        <div class="chat-input-row">
+            <input id="message-input" placeholder="Type a message…">
+            <button class="close-chat-btn">Leave</button>
+        </div>
     </div>
 </main>
 {% endblock %}

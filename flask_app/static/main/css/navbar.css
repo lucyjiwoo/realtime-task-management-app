@@ -1,99 +1,180 @@
-/* Navigation bar container */
-.nav-bar{
-    display:flex;
-    height:5vh;
-    width: 90vw;
-    background-color: rgb(248, 182, 107);
-    color: rgb(245, 245, 245);
+/* ── Navbar ──────────────────────────────────────── */
+.nav-bar {
+    display: flex;
     align-items: center;
-    padding: 0 5vw;
-    justify-content: end;
-    position: relative;     /* For positioning dropdown relative to navbar */
+    justify-content: space-between;
+    height: 60px;
+    padding: 0 24px;
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    box-shadow: 0 2px 8px rgba(234,88,12,.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
-/* List of navigation items */
+
+/* Brand logo + name */
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: -0.4px;
+}
+
+.brand-icon {
+    width: 28px;
+    height: 28px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* Desktop nav list */
 .nav-lists {
-    display:flex;
-    flex-wrap: wrap; 
-    list-style-type: none;
+    display: flex;
+    align-items: center;
+    list-style: none;
     padding: 0;
-    margin: 0;   
+    margin: 0;
+    gap: 8px;
+}
+
+.nav-list {
+    display: flex;
     align-items: center;
 }
 
-/* Sidebar (for mobile view) initially hidden */
-.side-bar {
-    display: none; 
-    flex-direction: column;
+.nav-link {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,.9);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    transition: background .2s, color .2s;
 }
 
-/* Checkbox input (for the dropdown menu) is hidden */
-#menu-click{
+.nav-link:hover {
+    background: rgba(255,255,255,.18);
+    color: #fff;
+}
+
+.nav-logout {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+}
+
+.nav-logout:hover {
+    background: rgba(255,255,255,.28);
+}
+
+.hello-user {
+    font-size: 13px;
+    color: rgba(255,255,255,.8);
+    padding: 4px 12px;
+    background: rgba(0,0,0,.12);
+    border-radius: 20px;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Mobile sidebar ──────────────────────────────── */
+.side-bar {
+    display: none;
+    position: relative;
+}
+
+#menu-click {
     display: none;
 }
 
-/* Menu icon for dropdown */
-.menu-icon{
-    width: 3vh;
-    height:3vh;
+/* Hamburger icon — three spans */
+.menu-icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
     cursor: pointer;
-    background-image: url("../images/menu-bar.png");
-    background-size: cover;
-    background-position: center;
+    padding: 0;
 }
 
-/* Dropdown menu for navigation (mobile view) */
+.menu-icon span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: #fff;
+    border-radius: 2px;
+    transition: transform .25s, opacity .25s;
+}
+
+/* Animate hamburger → X when checked */
+#menu-click:checked + .menu-icon span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+#menu-click:checked + .menu-icon span:nth-child(2) {
+    opacity: 0;
+}
+#menu-click:checked + .menu-icon span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
 .dropdown {
     display: none;
     flex-direction: column;
-    align-items: end;
-    background-color: rgb(236, 190, 118);
     position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-}
-/* Links inside the dropdown menu */
-.drowdown-link{
-    padding: 3vh 7vw;
-}
-
-/* Responsive design for small screens (650px or less) */
-@media screen and (max-width: 650px){
-    .nav-lists {
-        display: none; /* Hide regular navbar */
-    }
-    .side-bar {
-        display: flex;
-    }
+    top: calc(100% + 12px);
+    right: 0;
+    min-width: 180px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
+    overflow: hidden;
+    padding: 6px;
 }
 
 #menu-click:checked + .menu-icon + .dropdown {
     display: flex;
 }
 
-/* Individual navigation list item */
-.nav-list{
-    text-align: center;
-    margin-left: 3vw;
-}
-/* Navigation link style */
-.hello-user{
-    font-size:150%;
-    color: rgb(245, 245, 245);
-}
-
-/* Navigation link style */
-.nav-link{
-    font-size:150%;
-    color: rgb(245, 245, 245);
+.dropdown-link {
+    display: block;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1E293B;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background .15s;
 }
 
-/* Hover effect for the menu icon */
-.menu-icon:hover{
-    opacity: 0.5;
+.dropdown-link:hover {
+    background: #FFF7ED;
+    color: #EA580C;
 }
 
-/* Hover effect for the navigation links */
-.nav-link:hover{
-    opacity: 0.5;
-  }
+.dropdown-user {
+    display: block;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #94A3B8;
+    border-bottom: 1px solid #F1F5F9;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media screen and (max-width: 650px) {
+    .nav-lists {
+        display: none;
+    }
+    .side-bar {
+        display: flex;
+    }
+}
