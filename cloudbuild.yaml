@@ -1,0 +1,15 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '$_IMAGE_TAG'
+      - '-f'
+      - 'Dockerfile-dev'
+      - '.'
+
+images:
+  - '$_IMAGE_TAG'
+
+substitutions:
+  _IMAGE_TAG: gcr.io/PROJECT_ID/task-management-app:latest

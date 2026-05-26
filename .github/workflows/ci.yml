@@ -6,12 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: ${{ secrets.GCP_REGION }}
-  SERVICE_NAME: ${{ secrets.GCP_SERVICE_NAME }}
-  IMAGE: gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app
-
 jobs:
   # ────────────────────────────────────────────────
   # 1. Lint
@@ -92,11 +86,12 @@ jobs:
       - name: gcloud builds submit
         run: |
           gcloud builds submit \
-            --tag ${{ env.IMAGE }}:${{ github.sha }} \
-            --project ${{ env.PROJECT_ID }}
+            --config cloudbuild.yaml \
+            --substitutions _IMAGE_TAG=gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }} \
+            --project ${{ secrets.GCP_PROJECT_ID }}
 
   # ────────────────────────────────────────────────
-  # 3. gcloud run deploy
+  # 4. gcloud run deploy
   # ────────────────────────────────────────────────
   deploy:
     name: Deploy to Cloud Run
@@ -117,11 +112,11 @@ jobs:
 
       - name: gcloud run deploy
         run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image ${{ env.IMAGE }}:${{ github.sha }} \
-            --region ${{ env.REGION }} \
+          gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }} \
+            --region ${{ secrets.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
             --port 8080 \
             --memory 512Mi \
-            --project ${{ env.PROJECT_ID }}
+            --project ${{ secrets.GCP_PROJECT_ID }}
