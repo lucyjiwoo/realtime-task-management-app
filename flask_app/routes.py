@@ -1,12 +1,9 @@
 # Author: Jiwoo Jeong <jeongji7@msu.edu>
 from flask import current_app as app
-from flask import render_template, redirect, request, session, url_for, copy_current_request_context
+from flask import render_template, redirect, request, session, url_for, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, rooms, disconnect
-from .utils.database.database  import database
-from werkzeug.datastructures   import ImmutableMultiDict
-from pprint import pprint
+from .utils.database.database import database
 import json
-import random
 import functools
 from . import socketio
 

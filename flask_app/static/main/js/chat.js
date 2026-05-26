@@ -1,6 +1,5 @@
 $(document).ready(function(){
-    const protocol = "https://";
-    const socket = io.connect(`${protocol}${document.domain}:${location.port}/board`);
+    const socket = io.connect('/board');
 
     const pathParts = window.location.pathname.split('/'); // Split the URL path by "/"
     const boardId = pathParts[pathParts.length - 1];
@@ -13,7 +12,7 @@ $(document).ready(function(){
         let text = document.createTextNode(data.msg);
         let element = document.getElementById("chat");
         tag.appendChild(text);
-        tag.className = "status-message";
+        tag.className = "status-msg";
         element.appendChild(tag);
         $('#chat').scrollTop($('#chat')[0].scrollHeight);
     });
@@ -53,11 +52,7 @@ $(document).ready(function(){
     });
 
     $('#chat-click').change(function () {
-        if ($(this).is(':checked')) {
-            // If the checkbox is checked, join the chat room
-            socket.emit('joined', { board_id: boardId });
-        }else {
-            // If the checkbox is unchecked, leave the chat room
+        if (!$(this).is(':checked')) {
             socket.emit('left', { board_id: boardId });
         }
     });

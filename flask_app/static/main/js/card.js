@@ -1,11 +1,12 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     let draggedCard = null;
-    const protocol = "https://";
-    const socket = io.connect(`${protocol}${document.domain}:${location.port}/board`);
+    const socket = io.connect('/board');
     const pathParts = window.location.pathname.split('/');
     const boardId = pathParts[pathParts.length - 1];
 
+    // joined is emitted by chat.js when the chat is opened
+    // emit here only to register the socket in the board room (without chat)
     socket.emit('joined', { board_id: boardId });
 
     // Drag and drop
