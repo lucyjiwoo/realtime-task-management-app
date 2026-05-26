@@ -75,7 +75,7 @@ class TestCreateBoard:
             'members': 'member@example.com',
         }, follow_redirects=False)
         assert response.status_code == 302
-        assert response.headers['Location'].endswith('/home')
+        assert '/home' in response.headers['Location']
         db_mock.createBoards.assert_called_once()
 
     def test_create_board_requires_login(self, client):

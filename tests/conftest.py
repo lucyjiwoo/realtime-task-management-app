@@ -1,3 +1,4 @@
+import sys
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -6,15 +7,22 @@ from unittest.mock import MagicMock, patch
 def db_mock():
     mock = MagicMock()
     mock.createTables.return_value = None
+    # Return plain strings so Flask's JSON session serializer can store them
     mock.reversibleEncrypt.side_effect = lambda action, data: (
-        b'mock_token' if action == 'encrypt' else 'test@example.com'
+        'mock_token' if action == 'encrypt' else 'test@example.com'
     )
     return mock
 
 
 @pytest.fixture(scope='session')
 def flask_app(db_mock):
-    with patch('flask_app.utils.database.database.database', return_value=db_mock):
+    # Remove cached flask_app modules so patches apply to a fresh import
+    for key in list(sys.modules):
+        if key.startswith('flask_app'):
+            del sys.modules[key]
+
+    with patch('flask_failsafe.failsafe', lambda f: f), \
+         patch('flask_app.utils.database.database.database', return_value=db_mock):
         from flask_app import create_app, socketio as sio
         app = create_app(debug=False)
         app.config['TESTING'] = True
@@ -35,7 +43,7 @@ def auth_client(flask_app):
     app, _ = flask_app
     with app.test_client() as c:
         with c.session_transaction() as sess:
-            sess['email'] = b'mock_token'
+            sess['email'] = 'mock_token'
         yield c
 
 
