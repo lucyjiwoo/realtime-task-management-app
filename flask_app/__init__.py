@@ -6,7 +6,7 @@ from flask import Flask
 from flask_socketio import SocketIO
 from flask_failsafe import failsafe
 
-socketio = SocketIO()
+socketio = SocketIO(async_mode='threading')
 
 #--------------------------------------------------
 # Create a Failsafe Web Application
