@@ -84,11 +84,14 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: gcloud builds submit
+        env:
+          IMAGE_TAG: gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           gcloud builds submit \
             --config cloudbuild.yaml \
-            --substitutions _IMAGE_TAG=gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }} \
-            --project ${{ secrets.GCP_PROJECT_ID }}
+            --substitutions "_IMAGE_TAG=$IMAGE_TAG" \
+            --project "$PROJECT_ID"
 
   # ────────────────────────────────────────────────
   # 4. gcloud run deploy
@@ -111,12 +114,17 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: gcloud run deploy
+        env:
+          IMAGE_TAG: gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }}
+          SERVICE_NAME: ${{ secrets.GCP_SERVICE_NAME }}
+          REGION: ${{ secrets.GCP_REGION }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
-          gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
-            --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }} \
-            --region=${{ secrets.GCP_REGION }} \
+          gcloud run deploy "$SERVICE_NAME" \
+            --image="$IMAGE_TAG" \
+            --region="$REGION" \
             --platform=managed \
             --allow-unauthenticated \
             --port=8080 \
             --memory=512Mi \
-            --project=${{ secrets.GCP_PROJECT_ID }}
+            --project="$PROJECT_ID"

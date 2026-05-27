@@ -25,7 +25,9 @@ A **Trello-inspired Kanban board** built with Flask and WebSockets. Multiple use
 |---|---|
 | Auth | Signup / Login / Logout with encrypted passwords |
 | Boards | Create shared project boards, invite members by email |
-| Kanban Lists | Three default columns per board: To Do / Doing / Completed |
+| Kanban Lists | Three default columns per board: To Do / In Process / Completed |
+| Active Users | Green-dot indicators showing who is currently in the board chat room |
+| CI/CD | GitHub Actions pipeline — lint → test → Cloud Build → Cloud Run deploy |
 | Cards | Add, edit, delete cards with task descriptions |
 | Drag & Drop | Move cards between lists with drag and drop |
 | Card Locking | Card is locked while one user edits it — prevents simultaneous edits |
@@ -42,12 +44,13 @@ A **Trello-inspired Kanban board** built with Flask and WebSockets. Multiple use
 | Layer | Technology |
 |---|---|
 | Backend | Python 3, Flask |
-| Real-time | Flask-SocketIO + Eventlet |
+| Real-time | Flask-SocketIO (threading mode) |
 | Database | MySQL 8 |
 | Frontend | Vanilla JS, HTML/CSS (Jinja2 templates) |
 | Auth | scrypt (password hashing), Fernet (session encryption) |
 | Containerization | Docker, Docker Compose |
 | Cloud | Google Cloud Run |
+| CI/CD | GitHub Actions + Google Cloud Build |
 
 ---
 
@@ -154,7 +157,8 @@ Client A                    Flask-SocketIO Server              Client B, C...
 ────────                    ─────────────────────              ──────────────
 
 ── joined {board_id} ──►   join_room("board_<id>")
-                           emit status to room ──────────────► "X has entered the room"
+                           emit user_joined to room ─────────► "X joined" status message
+                           emit active_users to room ────────► green-dot user list updates
 
 ── new_card {list_id} ──►  db.createCard()
                            emit new_card to room ─────────────► card appears on board
@@ -173,6 +177,10 @@ Client A                    Flask-SocketIO Server              Client B, C...
                            emit card_deleted to room ─────────► card disappears
 
 ── send_message {msg} ──►  emit message to room ─────────────► chat message appears
+
+── left {board_id} ─────►  leave_room("board_<id>")
+                           emit user_left to room ──────────► "X left" status message
+                           emit active_users to room ────────► green-dot user list updates
 ```
 
 ---
@@ -184,9 +192,18 @@ realtime-task_management-web/
 │
 ├── app.py                          # Entry point — starts Flask + SocketIO server
 ├── requirements.txt                # Python dependencies
-├── Dockerfile                      # Production image
-├── Dockerfile-dev                  # Development image (volume-mounted)
+├── requirements-test.txt           # Test-only dependencies (pytest)
+├── Dockerfile-dev                  # Docker image (used by Cloud Build)
 ├── docker-compose.yml              # Local dev setup
+├── cloudbuild.yaml                 # Cloud Build config — builds from Dockerfile-dev
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml                  # CI/CD pipeline: lint → test → build → deploy
+│
+└── tests/
+    ├── conftest.py                 # Fixtures — app factory, DB mock, auth client
+    └── test_app.py                 # 11 tests: register, login, board, card CRUD
 │
 └── flask_app/
     ├── __init__.py                 # App factory — creates Flask app, inits SocketIO
@@ -312,7 +329,9 @@ Tables are created automatically on first run (`db.createTables()`).
 
 | Event (server → client) | Triggered by | Description |
 |---|---|---|
-| `status` | joined / left | User joined or left the room |
+| `user_joined` | joined | Broadcast username of user who just joined |
+| `user_left` | left | Broadcast username of user who just left |
+| `active_users` | joined / left | Full list of users currently in the room |
 | `new_card` | new_card | New card appears on all clients |
 | `card_moved` | move_card | Card moves to new list for all clients |
 | `lock_card` | lock_card | Card greys out for all other clients |
@@ -336,17 +355,49 @@ Tables are created automatically on first run (`db.createTables()`).
 
 ---
 
-## Deploy to Google Cloud
+## CI/CD Pipeline
 
-```bash
-# Build and push the container image
-gcloud builds submit --tag gcr.io/[YOUR_PROJECT_ID]/task-management
+Pushing to `main` triggers the full pipeline automatically:
 
-# Deploy to Cloud Run
-gcloud run deploy \
-  --image gcr.io/[YOUR_PROJECT_ID]/task-management \
-  --platform managed \
-  --port 8080
+```
+lint (flake8) → test (pytest) → Cloud Build (Docker image) → Cloud Run deploy
 ```
 
-Replace `[YOUR_PROJECT_ID]` with your GCP project ID.
+Required GitHub Secrets:
+
+| Secret | Description |
+|---|---|
+| `GCP_SA_KEY` | GCP service account key JSON |
+| `GCP_PROJECT_ID` | GCP project ID |
+| `GCP_SERVICE_NAME` | Cloud Run service name |
+| `GCP_REGION` | Cloud Run region (e.g. `us-central1`) |
+
+---
+
+## Deploy to Google Cloud
+
+### Automatic (via GitHub Actions)
+
+Push to `main` — the pipeline builds and deploys automatically.
+
+### Manual
+
+```bash
+# Build and push via Cloud Build (uses Dockerfile-dev)
+gcloud builds submit \
+  --config cloudbuild.yaml \
+  --substitutions _IMAGE_TAG=gcr.io/[YOUR_PROJECT_ID]/task-management-app:latest \
+  --project [YOUR_PROJECT_ID]
+
+# Deploy to Cloud Run
+gcloud run deploy [YOUR_SERVICE_NAME] \
+  --image=gcr.io/[YOUR_PROJECT_ID]/task-management-app:latest \
+  --region=[YOUR_REGION] \
+  --platform=managed \
+  --allow-unauthenticated \
+  --port=8080 \
+  --memory=512Mi \
+  --project=[YOUR_PROJECT_ID]
+```
+
+Replace values in `[...]` with your GCP project details.
