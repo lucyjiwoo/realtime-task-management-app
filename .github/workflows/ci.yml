@@ -113,10 +113,10 @@ jobs:
       - name: gcloud run deploy
         run: |
           gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }} \
-            --region ${{ secrets.GCP_REGION }} \
-            --platform managed \
+            --image= gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }} \
+            --region= ${{ secrets.GCP_REGION }} \
+            --platform= managed \
             --allow-unauthenticated \
-            --port 8080 \
-            --memory 512Mi \
-            --project ${{ secrets.GCP_PROJECT_ID }}
+            --port= 8080 \
+            --memory= 512Mi \
+            --project= ${{ secrets.GCP_PROJECT_ID }}

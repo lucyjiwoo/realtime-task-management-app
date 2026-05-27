@@ -8,6 +8,8 @@ import functools
 from . import socketio
 
 db = database()
+room_users = {}  # board room -> set of usernames currently connected
+
 #######################################################################################
 # AUTHENTICATION RELATED
 #######################################################################################
@@ -209,16 +211,21 @@ def connect_board():
 
 @socketio.on('joined', namespace='/board')
 def joined(message):
-    
     board_id = message.get('board_id')
-    print(board_id)
     if not board_id:
-        print(f"Error: board_id is missing in the message: {message}")
         return
     room = f"board_{board_id}"
     join_room(room)
 
-    emit('status', {'msg': f"{getUser()} has entered the room."}, room=room)
+    user = getUser()
+    username = user[:user.find("@")] if "@" in user else user
+
+    if room not in room_users:
+        room_users[room] = set()
+    room_users[room].add(username)
+
+    emit('user_joined', {'user': username}, room=room)
+    emit('active_users', {'users': list(room_users[room])}, room=room)
 
 @socketio.on('send_message', namespace='/board')
 def send_message(message):
@@ -233,5 +240,11 @@ def left(message):
     user = getUser()
     board_id = message.get('board_id')
     room = f"board_{board_id}"
-    emit('status', {'msg': f"{user} has left the room."}, room=room)
+    username = user[:user.find("@")] if "@" in user else user
+
+    if room in room_users:
+        room_users[room].discard(username)
+
+    emit('user_left', {'user': username}, room=room)
+    emit('active_users', {'users': list(room_users.get(room, set()))}, room=room)
     leave_room(room)

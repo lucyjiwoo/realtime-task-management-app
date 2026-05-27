@@ -193,7 +193,7 @@ class database:
                 self.insertRows(table="board_members", columns=["board_id", "user_id"], parameters=[[board_id, member_id]])            
             
             # Create lists in the board
-            default_lists = ["To Do", "Doing", "Completed"]
+            default_lists = ["To Do", "In Process", "Completed"]
             for list_name in default_lists:
                 self.insertRows(table="lists", columns=["name", "board_id"], parameters=[[list_name, board_id]])
 

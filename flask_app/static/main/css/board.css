@@ -13,12 +13,11 @@
 .list-section {
     display: flex;
     flex-direction: column;
-    min-width: 272px;
-    max-width: 272px;
+    flex: 1;
+    min-width: 180px;
     max-height: calc(100vh - 140px);
     background: #F1F5F9;
     border-radius: 14px;
-    flex-shrink: 0;
     overflow: hidden;
 }
 

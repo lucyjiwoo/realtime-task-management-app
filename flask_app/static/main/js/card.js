@@ -5,9 +5,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const pathParts = window.location.pathname.split('/');
     const boardId = pathParts[pathParts.length - 1];
 
-    // joined is emitted by chat.js when the chat is opened
-    // emit here only to register the socket in the board room (without chat)
+    window.activeUsers = new Set();
+    window.boardSocket = socket;
+
     socket.emit('joined', { board_id: boardId });
+
+    socket.on('active_users', function(data) {
+        window.activeUsers = new Set(data.users);
+        if (typeof window.renderActiveUsers === 'function') {
+            window.renderActiveUsers();
+        }
+    });
+
+    socket.on('user_joined', function(data) {
+        window.activeUsers.add(data.user);
+        if (typeof window.renderActiveUsers === 'function') {
+            window.renderActiveUsers();
+        }
+    });
+
+    socket.on('user_left', function(data) {
+        window.activeUsers.delete(data.user);
+        if (typeof window.renderActiveUsers === 'function') {
+            window.renderActiveUsers();
+        }
+    });
 
     // Drag and drop
     document.addEventListener('dragstart', (e) => {
