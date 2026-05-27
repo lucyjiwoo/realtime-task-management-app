@@ -113,6 +113,25 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Debug — verify secrets and image
+        env:
+          IMAGE_TAG: gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }}
+          SERVICE_NAME: ${{ secrets.GCP_SERVICE_NAME }}
+          REGION: ${{ secrets.GCP_REGION }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          echo "=== Secret lengths (0 = not set) ==="
+          echo "GCP_PROJECT_ID length : ${#PROJECT_ID}"
+          echo "GCP_SERVICE_NAME length: ${#SERVICE_NAME}"
+          echo "GCP_REGION length      : ${#REGION}"
+          echo "IMAGE_TAG length       : ${#IMAGE_TAG}"
+          echo "SHA                    : ${{ github.sha }}"
+          echo "=== Verify image exists in registry ==="
+          gcloud container images describe "$IMAGE_TAG" \
+            --project="$PROJECT_ID" \
+            && echo "Image found OK" \
+            || echo "WARNING: image not found or permission denied"
+
       - name: gcloud run deploy
         env:
           IMAGE_TAG: gcr.io/${{ secrets.GCP_PROJECT_ID }}/task-management-app:${{ github.sha }}
