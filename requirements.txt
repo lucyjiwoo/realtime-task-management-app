@@ -2,5 +2,4 @@ flask
 gunicorn
 cryptography
 flask-socketio
-Flask-Failsafe
 mysql-connector-python

@@ -21,8 +21,7 @@ def flask_app(db_mock):
         if key.startswith('flask_app'):
             del sys.modules[key]
 
-    with patch('flask_failsafe.failsafe', lambda f: f), \
-         patch('flask_app.utils.database.database.database', return_value=db_mock):
+    with patch('flask_app.utils.database.database.database', return_value=db_mock):
         from flask_app import create_app, socketio as sio
         app = create_app(debug=False)
         app.config['TESTING'] = True
