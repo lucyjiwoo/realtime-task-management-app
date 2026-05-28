@@ -19,7 +19,7 @@ class database:
         self.database       = os.environ.get('DB_NAME',     'db')
         self.host           = os.environ.get('DB_HOST',     '127.0.0.1')
         self.user           = os.environ.get('DB_USER',     'master')
-        self.port           = int(os.environ.get('DB_PORT', '3306'))
+        self.port           = int(os.environ.get('DB_PORT') or '3306')
         self.password       = os.environ.get('DB_PASSWORD', 'master')
         self.tables         = ['users','boards', 'board_members', 'lists', 'cards']
         
