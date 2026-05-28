@@ -90,7 +90,6 @@ jobs:
         run: |
           gcloud builds submit \
             --tag="$IMAGE_TAG" \
-            --dockerfile=Dockerfile \
             --project="$PROJECT_ID"
 
   # ────────────────────────────────────────────────
