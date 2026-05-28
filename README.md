@@ -2,6 +2,8 @@
 
 A **Trello-inspired Kanban board** built with Flask and WebSockets. Multiple users can collaborate on shared project boards in real time — creating, editing, moving, and deleting cards without refreshing the page, with a live chat system per board.
 
+🚀 **Live Demo:** [https://taskflow-app-685140135697.us-central1.run.app](https://taskflow-app-685140135697.us-central1.run.app)
+
 ---
 
 ## Table of Contents
