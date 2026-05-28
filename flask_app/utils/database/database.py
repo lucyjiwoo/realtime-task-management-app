@@ -14,12 +14,13 @@ class database:
 
     def __init__(self, purge = False):
 
-        # Grab information from the configuration file
-        self.database       = 'db'
-        self.host           = '127.0.0.1'
-        self.user           = 'master'
-        self.port           = 3306
-        self.password       = 'master'
+        # Read DB connection from environment variables (production)
+        # Falls back to local dev defaults when env vars are not set
+        self.database       = os.environ.get('DB_NAME',     'db')
+        self.host           = os.environ.get('DB_HOST',     '127.0.0.1')
+        self.user           = os.environ.get('DB_USER',     'master')
+        self.port           = int(os.environ.get('DB_PORT', '3306'))
+        self.password       = os.environ.get('DB_PASSWORD', 'master')
         self.tables         = ['users','boards', 'board_members', 'lists', 'cards']
         
         # NEW IN HW 3-----------------------------------------------------------------
